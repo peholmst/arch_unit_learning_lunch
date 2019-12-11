@@ -3,6 +3,9 @@ package com.packagename.myapp.ui;
 import com.packagename.myapp.application.customer.CustomerListingDTO;
 import com.packagename.myapp.application.customer.CustomerService;
 import com.packagename.myapp.domain.model.common.EmailAddress;
+import com.packagename.myapp.domain.model.customer.Customer;
+import com.packagename.myapp.domain.model.customer.CustomerRepository;
+import com.packagename.myapp.domain.service.customer.CustomerFactory;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -12,7 +15,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.DataProvider;
-import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.Route;
 
 import java.util.Objects;
@@ -21,10 +23,14 @@ import java.util.Objects;
 public class MainView extends VerticalLayout {
 
     private final CustomerService customerService;
+    private final CustomerRepository customerRepository;
+    private final CustomerFactory customerFactory;
     private Grid<CustomerListingDTO> customerGrid;
 
-    public MainView(CustomerService customerService) {
+    public MainView(CustomerService customerService, CustomerRepository customerRepository, CustomerFactory customerFactory) {
         this.customerService = customerService;
+        this.customerRepository = customerRepository;
+        this.customerFactory = customerFactory;
 
         setSizeFull();
 
@@ -52,7 +58,10 @@ public class MainView extends VerticalLayout {
     }
 
     private void refresh() {
-        customerGrid.setDataProvider(DataProvider.ofCollection(customerService.findCustomers()));
+        // customerGrid.setDataProvider(DataProvider.ofCollection(customerService.findCustomers()));
+        customerGrid.setDataProvider(DataProvider.fromStream(customerRepository.findAll()
+                .stream()
+                .map(c -> CustomerListingDTO.builder().id(c.getId()).name(c.getName()).emailAddress(c.getEmail()).build())));
     }
 
     private void createCustomer() {
@@ -63,7 +72,9 @@ public class MainView extends VerticalLayout {
         dialog.add(customerName);
 
         Button create = new Button("Create", event -> {
-            customerService.createCustomer(customerName.getValue());
+            //customerService.createCustomer(customerName.getValue());
+            Customer customer = customerFactory.createCustomer(customerName.getValue());
+            customerRepository.saveAndFlush(customer);
             dialog.close();
             refresh();
         });

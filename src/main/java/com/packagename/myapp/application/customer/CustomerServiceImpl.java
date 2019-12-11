@@ -20,7 +20,7 @@ import static java.util.Objects.requireNonNull;
 
 @ApplicationService
 @Transactional(propagation = Propagation.REQUIRES_NEW)
-class CustomerServiceImpl implements CustomerService {
+public class CustomerServiceImpl implements CustomerService {
 
     // Given the structure of Customer, CustomerListingDTO and this application service, the design is way
     // over-engineered but that is not the point. The point is to show how ArchUnit can be used to enforce a certain
@@ -37,7 +37,7 @@ class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    @NonNull
+    // @NonNull
     public List<CustomerListingDTO> findCustomers() {
         return new JPAQuery<>(entityManager)
                 .select(customer.id, customer.name, customer.email)
